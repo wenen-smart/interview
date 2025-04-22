@@ -1,0 +1,62 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace PETime
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            //---多线程定时 
+            PETimer timer = new PETimer(50);
+            Console.WriteLine(timer.GetLocalTimeStr());
+            //---日志输出
+            timer.SetLogger((message) => { Console.WriteLine("[PETime--Logger]:" + message); });
+            //---设置依赖最小目标原则
+            timer.DependOnMinDestTime = true;
+            //---日志写入间隔
+            timer.SetHowLongOnceWriteLog=2000;
+            //---设置多线程回调主线程模式
+            timer.SetMainHandler();
+            //---设置帧速率概念
+            timer.SetFrameRate =1000f/60;
+            //---任务测试
+            ////timer.AddTimeTask(() => { /*Console.WriteLine("1");*//* Console.WriteLine($"CurrentThreadID:{Thread.CurrentThread.ManagedThreadId} -- Excute2-{excute++}");*/ },60, PETimeUnit.MillSeconds, 500);
+            //int tid1 = timer.AddTimeTask(() => { },null, 100, PETimeUnit.MillSeconds, 520);
+            //int tid2 = timer.AddTimeTask(() => { }, null, 200, PETimeUnit.MillSeconds, 300);
+            //int tid3=timer.AddFrameTask(() => { timer.ReplaceTimeTask(tid2, () => { timer.LogInfo("--替换任务--"); }, null, 1, PETimeUnit.Seconds, 1); }, null, 5, 1);
+            //int tid4=timer.AddTimeTask(() => { timer.DeleteTimeTask(tid1); }, null, 50, PETimeUnit.Seconds, 1);
+            //timer.DeleteTimeTask(tid1);
+            //timer.DeleteTimeTask(tid2);
+            //timer.DeleteFrameTask(tid3);
+            //timer.DeleteTimeTask(tid4);
+            //int tid5 = timer.AddTimeTask(() => { timer.AddTimeTask(() => { }, null, 100, PETimeUnit.MillSeconds, 1); }, null, 500, PETimeUnit.MillSeconds, 1);
+            //int tid6 = timer.AddFrameTask(() => { }, null, 1, 400);
+            //int tid7 = timer.AddFrameTask(() => { }, null, 2, 100);
+
+            //int tid8 = timer.AddTimeTask(()=> { timer.ReplaceFrameTask(tid7, () => {timer.LogInfo("--替换tid7任务--");}, null, 2, 1); }, null, 3f/60,PETimeUnit.Minutes,1);
+            int tid9 = timer.AddFrameTask(() => {}, () => { timer.LogInfo("结束：" + PETimer.GetTimeStr(DateTime.UtcNow)); }, 1, 60, true);
+            //---启用记录任务状态日志
+            timer.EnableLogTaskStatus(true);
+            AppDomain.CurrentDomain.DomainUnload += (sender, arg) =>
+            {
+                timer.LogInfo("应用程序退出");
+                timer.ImmdietalyWriteLogFile();
+            };
+            while (true)
+            {
+                Thread.Sleep(10);
+                //主线程操作任务
+                if (timer.MainThreadExcuteTask())
+                {
+                    Console.WriteLine(timer.GetLocalTimeStr());
+                }
+            }
+            Console.ReadLine();
+        }
+    }
+}

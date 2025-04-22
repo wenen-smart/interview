@@ -1,0 +1,16 @@
+{
+    "name": "FrameworkAssembly",
+    "rootNamespace": "",
+    "references": [
+        "GUID:bf50ec3d07c177b47a343091e4925ea2"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
