@@ -8,6 +8,10 @@ public class RemoveDeadSystem : ComponentSystem
 	{
 		Entities.ForEach((Entity entity, ref Health health, ref Translation pos) =>
 		{
+		if	(EntityManager.HasComponent(entity, typeof(PlayerTag)))
+			{
+				Settings.Sethp(health.Value);//获取实时生命
+            }
 			if (health.Value <= 0)
 			{
 				if (EntityManager.HasComponent(entity, typeof(PlayerTag)))
@@ -19,6 +23,9 @@ public class RemoveDeadSystem : ComponentSystem
 				{
 					PostUpdateCommands.DestroyEntity(entity);
 					BulletImpactPool.PlayBulletImpact(pos.Value);
+					Settings.EnemyDied(pos.Value);
+					CollisionGet.money++;
+					Settings.enemyNumber--;
 				}
 			}
 		});

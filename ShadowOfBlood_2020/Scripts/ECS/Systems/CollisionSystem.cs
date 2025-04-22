@@ -7,28 +7,33 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-[UpdateAfter(typeof(MoveForwardSystem))]
-[UpdateBefore(typeof(TimedDestroySystem))]
+//[UpdateAfter(typeof(MoveForwardSystem))]
+//[UpdateBefore(typeof(TimedDestroySystem))]
+[DisableAutoCreation]
 public class CollisionSystem : JobComponentSystem
 {
 	
 	EntityQuery enemyGroup;
 	EntityQuery bulletGroup;
 	EntityQuery playerGroup;
-	public static  float timer1 = 3;// 怪物攻击频率
+    static Unity.Mathematics.Random random;
+	public static  float timer1 = 2f;// 怪物攻击频率
 	protected override void OnCreate()
 	{
+		random = new Unity.Mathematics.Random(63);
+		
 		playerGroup = GetEntityQuery(typeof(Health), ComponentType.ReadOnly<Translation>(), ComponentType.ReadOnly<PlayerTag>());
 		enemyGroup = GetEntityQuery(typeof(Health), ComponentType.ReadOnly<Translation>(), ComponentType.ReadOnly<EnemyTag>());
 		bulletGroup = GetEntityQuery(typeof(TimeToLive), ComponentType.ReadOnly<Translation>());
 	}
 	protected override JobHandle OnUpdate(JobHandle inputDependencies)
 	{
-		
+	
 		timer1 -= Time.DeltaTime;
+		
 		var healthType = GetArchetypeChunkComponentType<Health>(false);
 		var translationType = GetArchetypeChunkComponentType<Translation>(true);
-		//	var bulletsDamageType = GetArchetypeChunkComponentType<Damage>(true);
+		
 		float d = Settings.GetBulletdamage;
 		float enemyRadius = Settings.EnemyCollisionRadius;
 		float playerRadius = Settings.PlayerCollisionRadius;
@@ -37,6 +42,7 @@ public class CollisionSystem : JobComponentSystem
 		{
 			D = d,
 			radius = enemyRadius * enemyRadius,
+			
 			healthType = healthType,
 			translationType = translationType,
 			//damagesType=bulletsDamageType,
@@ -60,8 +66,9 @@ public class CollisionSystem : JobComponentSystem
 				translationType = translationType,
 				//damagesType = bulletsDamageType,
 				transToTestAgainst = enemyGroup.ToComponentDataArray<Translation>(Allocator.TempJob),
-				//damagesAgainst = bulletGroup.ToComponentDataArray<Damage>(Allocator.TempJob)
-			};
+			//damagesAgainst = bulletGroup.ToComponentDataArray<Damage>(Allocator.TempJob)
+		
+	};
 	
 		return  jobPvE.Schedule(playerGroup, jobHandle);
 		
@@ -75,6 +82,7 @@ public class CollisionSystem : JobComponentSystem
 		public float radius;
 		public float D;
 		public ArchetypeChunkComponentType<Health> healthType;
+		
 		[ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
 		//[ReadOnly] public ArchetypeChunkComponentType<Damage> damagesType;
 		[DeallocateOnJobCompletion]
@@ -82,7 +90,7 @@ public class CollisionSystem : JobComponentSystem
 		//[ReadOnly] public NativeArray<Damage> damagesAgainst;
 
 		public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex)
-		{
+		{   
 			var chunkHealths = chunk.GetNativeArray(healthType);
 			var chunkTranslations = chunk.GetNativeArray(translationType);
 			//var chunkBulletdamage = chunk.GetNativeArray(damagesType);
@@ -90,6 +98,7 @@ public class CollisionSystem : JobComponentSystem
 			for (int i = 0; i < chunk.Count; i++)
 			{
 				float damage = 0f;
+				
 				Health health = chunkHealths[i];
 				Translation pos = chunkTranslations[i];
 				
@@ -103,13 +112,15 @@ public class CollisionSystem : JobComponentSystem
 						
 				//			Damage dam = chunkBulletdamage[0];
 							damage += D;
-
 						
+
+
 					}
 				}
 
 				if (damage > 0)
 				{
+					
 					health.Value -= damage;
 					chunkHealths[i] = health;
 
@@ -150,7 +161,7 @@ public class CollisionSystem : JobComponentSystem
                     if (CheckCollision(pos.Value, pos2.Value, radius))
                     {
 						
-							damage += 1;// 怪物伤害都为1
+							damage +=( 1+random.NextInt(0,4));
 						
 
                     }
@@ -160,7 +171,8 @@ public class CollisionSystem : JobComponentSystem
                 {
                     health.Value -= damage;
                     chunkHealths[i] = health;
-					timer1 = 3;
+					timer1 = random.NextFloat(1, 2);
+					Settings.ISBoold=true;
 				}
             }
 			
@@ -172,7 +184,6 @@ public class CollisionSystem : JobComponentSystem
 	{
 		float3 delta = posA - posB;
 		float distanceSquare = delta.x * delta.x + delta.z * delta.z;
-
-		return distanceSquare <= radiusSqr;
+		return distanceSquare <= radiusSqr+1;
 	}
 }

@@ -1,7 +1,16 @@
-﻿using UnityEngine;
+﻿using System.Configuration;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerMovementAndLook : MonoBehaviour
 {
+	private Cinemachine.CinemachineCollisionImpulseSource MyInpulse;
+	public  Image hp;
+	 float fix;
+	  Renderer renderer;
+	  Material red;
+
 	[Header("Camera")]
 	public Camera mainCamera;
 
@@ -17,18 +26,43 @@ public class PlayerMovementAndLook : MonoBehaviour
 
 	Rigidbody playerRigidbody;
 	bool isDead;
-
+	//Texture textureRed;
 	void Awake()
+
 	{
+		//	textureRed= AssetDatabase.LoadAssetAtPath("Assets/UI/Icons/StyleSprites/AllCorners_Dark_OnActive_Underline 1.png", typeof(Texture2D)) as Texture2D;
+		MyInpulse =GameObject.Find("Gun"). GetComponent<Cinemachine.CinemachineCollisionImpulseSource>();
 		playerRigidbody = GetComponent<Rigidbody>();
+		renderer = GameObject.FindGameObjectWithTag("playerbaes").GetComponent<Renderer>();
+		red = renderer.material;
+        //red = new Material(Shader.Find("Standard"));
+        //red.EnableKeyword("_EMISSION");
+        //red.SetTexture("_EMISSION", textureRed);
+        //red.SetTextureScale("_EMISSION", new Vector2(0, 555));
+        //renderer.material = red;
+        //red.SetColor("_Color", Color.red);
+     
 	}
 
 	void FixedUpdate()
 	{
+		fix = 5 - Settings.Gethp / 200;
+		red.mainTextureScale = new Vector2(0, fix);
+		// life ui
+		hp.fillAmount = Settings.Gethp / 1000;
+		if (Settings.ISBoold==true)
+        {
+			MyInpulse.GenerateImpulse();
+		//	Debug.Log("Yes");
+			Gui.OnBlood();
+			Settings.ISBoold = false;
+
+		}
+		//red.SetColor("_EmissionColor", new Color(0, 44, 444));
 		if (isDead)
 			return;
 
-		//Arrow Key Input
+	
 		float h = Input.GetAxis("Horizontal");
 		float v = Input.GetAxis("Vertical");
 
@@ -88,19 +122,7 @@ public class PlayerMovementAndLook : MonoBehaviour
 		playerAnimator.SetFloat("Strafe", stra);
 	}
 
-	//Player Collision
-	//void OnTriggerEnter(Collider theCollider)
-	//{
-	//	if (!theCollider.CompareTag("Enemy"))
-	//		return;
 
-	//	playerHealth--;
-
-	//	if(playerHealth <= 0)
-	//	{
-	//		Settings.PlayerDied();
-	//	}
-	//}
 
 	public void PlayerDied()
 	{
@@ -112,5 +134,14 @@ public class PlayerMovementAndLook : MonoBehaviour
 		playerAnimator.SetTrigger("Died");
 		playerRigidbody.isKinematic = true;
 		GetComponent<Collider>().enabled = false;
+		gameObject.GetComponent<Gun>().enabled = false;
+		Invoke("Del", 5.0f);
 	}
+	public void Del()
+    {
+		
+		Destroy(gameObject);
+		Gui.OnLose();
+
+    }
 }

@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Unity.Transforms
 {
-	[DisableAutoCreation]
+	//[DisableAutoCreation]
 	public class MoveForwardSystem : JobComponentSystem
 	{
 		[BurstCompile]

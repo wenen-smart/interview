@@ -5,7 +5,7 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
-
+[DisableAutoCreation]
 [UpdateBefore(typeof(MoveForwardSystem))]
 public class TurnTowardsPlayerSystem : JobComponentSystem
 {
